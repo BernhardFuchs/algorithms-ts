@@ -1,14 +1,57 @@
 // Util methods
-const isValidOrder = (options: any): boolean | undefined => {
-  if (options === undefined || options.order === undefined) return;
-  if (options.order !== "asc" && options.order !== "desc") {
-    console.log(`${options.order} not supported. Use 'asc' or 'desc'.`);
-    return false;
-  }
-  return true;
+
+interface SortingOptions {
+  orderBy?: string;
+  isCaseSensitive?: boolean;
+}
+
+const defaultOptions: SortingOptions = {
+  orderBy: "asc",
+  isCaseSensitive: false
 };
 
-const getSortAlgorithm = (order: string, isCaseSensitive: boolean) => {
+const sanitizeOptions = (options: SortingOptions | undefined): SortingOptions => {
+  if (options === undefined) {
+    console.log(
+      `Sorting with default order by ${defaultOptions.orderBy}
+Sorting with default case sensitive ${defaultOptions.isCaseSensitive}`
+    );
+    return defaultOptions;
+  }
+
+  if (options.orderBy === undefined) {
+    options.orderBy = defaultOptions.orderBy;
+    console.log(`Sorting with default order by ${options.orderBy}`);
+  } else if (options.orderBy !== "asc" && options.orderBy !== "desc") {
+    console.log(`${options.orderBy} not supported. Use 'asc' or 'desc'.
+Sorting with default orderBy ${defaultOptions.orderBy}`);
+    options.orderBy = defaultOptions.orderBy;
+  } else {
+    console.log(`Sorting with custom order by ${options.orderBy}`);
+  }
+
+  if (options.isCaseSensitive === undefined) {
+    options.isCaseSensitive = defaultOptions.isCaseSensitive;
+    console.log(
+      `Sorting with default case sensitive ${options.isCaseSensitive}`
+    );
+  } else {
+    console.log(
+      `Sorting with custom case sensitive ${options.isCaseSensitive}`
+    );
+  }
+
+  return options;
+};
+
+interface SortStringAlgorithm {
+  (a: string, b: string): number;
+}
+
+const getSortAlgorithm = (
+  order: string,
+  isCaseSensitive: boolean
+): SortStringAlgorithm => {
   switch (order) {
     case "desc":
       return isCaseSensitive
@@ -43,38 +86,35 @@ const getSortAlgorithm = (order: string, isCaseSensitive: boolean) => {
 // Basic string Array sort
 const sortStrings = (
   stringArray: ReadonlyArray<string>,
-  options?: { order?: string; isCaseSensitive?: boolean }
+  options?: SortingOptions | undefined
 ) => {
-  if (isValidOrder(options) === false) return;
+  const _options: SortingOptions = sanitizeOptions(options);
   const _arrayCopy: string[] = stringArray.slice();
 
-  let _order: string;
-  options !== undefined && options.order !== undefined
-    ? (_order = options.order)
-    : (_order = "asc");
+  const _order: string =
+    _options.orderBy !== undefined ? _options.orderBy : "asc";
 
-  let _isCaseSensitive: boolean;
-  options !== undefined && options.isCaseSensitive !== undefined
-    ? (_isCaseSensitive = options.isCaseSensitive)
-    : (_isCaseSensitive = true);
+  const _isCaseSensitive: boolean =
+    _options.isCaseSensitive !== undefined ? _options.isCaseSensitive : true;
 
   console.log(
     `Case Sensitive: ${_isCaseSensitive}, order: ${_order}`,
     _arrayCopy.sort(getSortAlgorithm(_order, _isCaseSensitive))
   );
+  console.log("");
 };
 
 const stringArray: string[] = ["Zah", "bla", "Sah", "Ah", "lah"];
 sortStrings(stringArray);
 sortStrings(stringArray, { isCaseSensitive: false });
 sortStrings(stringArray, { isCaseSensitive: true });
-sortStrings(stringArray, { order: "desc" });
-sortStrings(stringArray, { order: "desc", isCaseSensitive: false });
-sortStrings(stringArray, { order: "desc", isCaseSensitive: true });
-sortStrings(stringArray, { order: "asc" });
-sortStrings(stringArray, { order: "asc", isCaseSensitive: false });
-sortStrings(stringArray, { order: "asc", isCaseSensitive: true });
-sortStrings(stringArray, { order: "something" });
+sortStrings(stringArray, { orderBy: "desc" });
+sortStrings(stringArray, { orderBy: "desc", isCaseSensitive: false });
+sortStrings(stringArray, { orderBy: "desc", isCaseSensitive: true });
+sortStrings(stringArray, { orderBy: "asc" });
+sortStrings(stringArray, { orderBy: "asc", isCaseSensitive: false });
+sortStrings(stringArray, { orderBy: "asc", isCaseSensitive: true });
+sortStrings(stringArray, { orderBy: "something" });
 
 // built-in number Array sort
 const numberArray: number[] = [3, 24, 45, 6, 1];
