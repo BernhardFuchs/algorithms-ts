@@ -1,21 +1,80 @@
+// Util methods
+const isValidOrder = (options: any): boolean | undefined => {
+  if (options === undefined || options.order === undefined) return;
+  if (options.order !== "asc" && options.order !== "desc") {
+    console.log(`${options.order} not supported. Use 'asc' or 'desc'.`);
+    return false;
+  }
+  return true;
+};
+
+const getSortAlgorithm = (order: string, isCaseSensitive: boolean) => {
+  switch (order) {
+    case "desc":
+      return isCaseSensitive
+        ? (a: string, b: string) =>
+            convertToAscii(b)
+              .toString()
+              .localeCompare(convertToAscii(a).toString())
+        : (a: string, b: string) =>
+            b.toLowerCase().localeCompare(a.toLowerCase());
+    default:
+      return isCaseSensitive
+        ? (a: string, b: string) =>
+            convertToAscii(a)
+              .toString()
+              .localeCompare(convertToAscii(b).toString())
+        : (a: string, b: string) =>
+            a.toLowerCase().localeCompare(b.toLowerCase());
+  }
+
+  function convertToAscii(text: string): number {
+    return text
+      .split("")
+      .map(char => {
+        return char.charCodeAt(0);
+      })
+      .reduce((current, previous) => {
+        return previous + current;
+      });
+  }
+};
+
 // Basic string Array sort
-const stringArray: string[] = ["zah", "bla", "sah"];
-const sortStrings = (stringArr: string[]) => {
-  stringArr.sort();
-  console.log("sorted StringArr", stringArr);
+const sortStrings = (
+  stringArray: ReadonlyArray<string>,
+  options?: { order?: string; isCaseSensitive?: boolean }
+) => {
+  if (isValidOrder(options) === false) return;
+  const _arrayCopy: string[] = stringArray.slice();
+
+  let _order: string;
+  options !== undefined && options.order !== undefined
+    ? (_order = options.order)
+    : (_order = "asc");
+
+  let _isCaseSensitive: boolean;
+  options !== undefined && options.isCaseSensitive !== undefined
+    ? (_isCaseSensitive = options.isCaseSensitive)
+    : (_isCaseSensitive = true);
+
+  console.log(
+    `Case Sensitive: ${_isCaseSensitive}, order: ${_order}`,
+    _arrayCopy.sort(getSortAlgorithm(_order, _isCaseSensitive))
+  );
 };
 
+const stringArray: string[] = ["Zah", "bla", "Sah", "Ah", "lah"];
 sortStrings(stringArray);
-
-// Readonly string Array sort
-const stringArrayReadonly: ReadonlyArray<string> = ["zah", "bla", "sah"];
-const sortStringsReadonly = (stringArr: ReadonlyArray<string>) => {
-  const copyArr: string[] = stringArr.slice();
-  console.log("readonly StringArr", stringArr);
-  console.log(`sorted CopyArr ${copyArr.sort()}`);
-};
-
-sortStringsReadonly(stringArrayReadonly);
+sortStrings(stringArray, { isCaseSensitive: false });
+sortStrings(stringArray, { isCaseSensitive: true });
+sortStrings(stringArray, { order: "desc" });
+sortStrings(stringArray, { order: "desc", isCaseSensitive: false });
+sortStrings(stringArray, { order: "desc", isCaseSensitive: true });
+sortStrings(stringArray, { order: "asc" });
+sortStrings(stringArray, { order: "asc", isCaseSensitive: false });
+sortStrings(stringArray, { order: "asc", isCaseSensitive: true });
+sortStrings(stringArray, { order: "something" });
 
 // built-in number Array sort
 const numberArray: number[] = [3, 24, 45, 6, 1];
@@ -30,10 +89,10 @@ const sortNumbersCustom = (numberArr: number[], order?: string) => {
   const _order: string = order || "asc";
   switch (_order) {
     case "asc":
-      console.log(numberArr.sort((a, b) => a - b));
+      console.log("Number sort 'asc'", numberArr.sort((a, b) => a - b));
       break;
     case "desc":
-      console.log(numberArr.sort((a, b) => b - a));
+      console.log("Number sort 'desc'", numberArr.sort((a, b) => b - a));
       break;
     default:
       console.log("Invalid order, only 'asc' and 'desc' supported!");
@@ -83,8 +142,6 @@ const sortMovies = (
   options !== undefined && options.sortBy !== undefined
     ? (_sortBy = options.sortBy)
     : (_sortBy = "year");
-  console.log("Order by", _order);
-  console.log("Sort by", _sortBy);
 
   switch (_sortBy) {
     case "year":
